@@ -11,34 +11,32 @@ import java.util.Optional;
 
 public interface SerieRepository extends JpaRepository<Serie, Long> {
 
-    @Query("SELECT DISTINCT s FROM Serie s JOIN FETCH s.episodios")
-    List<Serie> findAllWithEpisodios();
-
-    // Busca séries que contenham o trecho de título informado, retornando uma lista.
+    // CORREÇÃO: Retorna List<Serie> para lidar com múltiplos resultados e evitar erros.
+    // Usado nas buscas por título e na busca de episódios.
     List<Serie> findByTituloContainingIgnoreCase(String nomeSerie);
 
     // Busca séries por ator e com avaliação maior ou igual à informada.
-    List<Serie> findByAtoresContainingIgnoreCaseAndAvaliacaoGreaterThanEqual(String nomeAtor, Double avaliacao);
+    List<Serie> findByAtoresContainingIgnoreCaseAndAvaliacaoGreaterThanEqual(String nomeAtor, double avaliacao);
 
     // Busca as 5 séries com as melhores avaliações.
     List<Serie> findTop5ByOrderByAvaliacaoDesc();
 
-    // Busca séries por uma categoria específica.
+    // Busca séries por uma categoria específica (enum).
     List<Serie> findByGenero(Categoria categoria);
 
-    // Busca séries com um número de temporadas menor ou igual e avaliação maior ou igual ao informado.
-    // Esta é uma query JPQL customizada usando a anotação @Query.
+    // Busca séries usando uma query JPQL customizada para mais complexidade.
     @Query("select s from Serie s WHERE s.totalTemporadas <= :totalTemporadas AND s.avaliacao >= :avaliacao")
     List<Serie> seriesPorTemporadaEAValiacao(int totalTemporadas, double avaliacao);
 
-    // As queries abaixo não foram pedidas, mas seriam necessárias para as funções
-    // de busca de episódio que você criou. Adicionei-as aqui para completar a funcionalidade.
+    // Busca episódios por um trecho do título do episódio.
     @Query("SELECT e FROM Serie s JOIN s.episodios e WHERE e.titulo ILIKE %:trechoEpisodio%")
     List<Episodio> episodiosPorTrecho(String trechoEpisodio);
 
+    // Busca os 5 melhores episódios de uma série específica.
     @Query("SELECT e FROM Serie s JOIN s.episodios e WHERE s = :serie ORDER BY e.avaliacao DESC LIMIT 5")
     List<Episodio> topEpisodiosPorSerie(Serie serie);
 
+    // Busca episódios de uma série a partir de um ano de lançamento.
     @Query("SELECT e FROM Serie s JOIN s.episodios e WHERE s = :serie AND YEAR(e.dataLancamento) >= :anoLancamento")
     List<Episodio> episodiosPorSerieEAno(Serie serie, int anoLancamento);
 }

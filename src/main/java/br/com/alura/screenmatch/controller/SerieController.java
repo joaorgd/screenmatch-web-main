@@ -11,12 +11,13 @@ import java.util.List;
 @RestController
 public class SerieController {
 
+    // Injeta a dependência do repositório para que possamos usá-lo.
     @Autowired
     private SerieRepository repositorio;
 
     @GetMapping("/series")
     public List<Serie> obterSeries(){
-        // Use o novo método otimizado em vez de findAll()
-        return repositorio.findAllWithEpisodios();
+        // Agora, o método busca todas as séries do banco e as retorna.
+        return repositorio.findAll();
     }
 }
