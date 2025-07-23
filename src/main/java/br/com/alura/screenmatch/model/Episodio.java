@@ -1,12 +1,7 @@
 package br.com.alura.screenmatch.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
@@ -23,6 +18,7 @@ public class Episodio {
     private Double avaliacao;
     private LocalDate dataLancamento;
     @ManyToOne
+    @JsonBackReference
     private Serie serie;
 
     public Episodio(){}
@@ -44,6 +40,8 @@ public class Episodio {
             this.dataLancamento = null;
         }
     }
+
+    // ... Getters e Setters ...
 
     public Long getId() {
         return id;
@@ -93,6 +91,8 @@ public class Episodio {
         this.avaliacao = avaliacao;
     }
 
+
+
     public LocalDate getDataLancamento() {
         return dataLancamento;
     }
@@ -103,10 +103,10 @@ public class Episodio {
 
     @Override
     public String toString() {
-        return "temporada=" + temporada +
-                ", titulo='" + titulo + '\'' +
-                ", numeroEpisodio=" + numeroEpisodio +
-                ", avaliacao=" + avaliacao +
-                ", dataLancamento=" + dataLancamento ;
+        return "Temporada=" + temporada +
+                ", Título='" + titulo + '\'' +
+                ", Número do Episódio=" + numeroEpisodio +
+                ", Avaliação=" + avaliacao +
+                ", Data de Lançamento=" + dataLancamento;
     }
 }

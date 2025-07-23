@@ -1,8 +1,8 @@
 package br.com.alura.screenmatch.model;
 
 import br.com.alura.screenmatch.service.traducao.ConsultaMyMemory;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalDouble;
@@ -23,6 +23,7 @@ public class Serie {
     private String sinopse;
 
     @OneToMany(mappedBy = "serie", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonManagedReference
     private List<Episodio> episodios = new ArrayList<>();
 
     public Serie() {}
@@ -30,13 +31,19 @@ public class Serie {
     public Serie(DadosSerie dadosSerie){
         this.titulo = dadosSerie.titulo();
         this.totalTemporadas = dadosSerie.totalTemporadas();
-        this.avaliacao = OptionalDouble.of(Double.valueOf(dadosSerie.avaliacao())).orElse(0);
+        // CORREÇÃO 1: Usando try-catch para garantir que a conversão da avaliação não quebre com "N/A".
+        try {
+            this.avaliacao = Double.valueOf(dadosSerie.avaliacao());
+        } catch (NumberFormatException e) {
+            this.avaliacao = 0.0;
+        }
         this.genero = Categoria.fromString(dadosSerie.genero().split(",")[0].trim());
         this.atores = dadosSerie.atores();
         this.poster = dadosSerie.poster();
         this.sinopse = ConsultaMyMemory.obterTraducao(dadosSerie.sinopse()).trim();
     }
 
+    // Getters e Setters
     public Long getId() {
         return id;
     }
@@ -110,16 +117,15 @@ public class Serie {
         this.sinopse = sinopse;
     }
 
+    // CORREÇÃO 2: O método toString() foi ajustado para não imprimir a lista de episódios diretamente.
     @Override
     public String toString() {
-        return
-                "genero=" + genero +
-                        ", titulo='" + titulo + '\'' +
-                        ", totalTemporadas=" + totalTemporadas +
-                        ", avaliacao=" + avaliacao +
-                        ", atores='" + atores + '\'' +
-                        ", poster='" + poster + '\'' +
-                        ", sinopse='" + sinopse + '\'' +
-                        ", episodios='" + episodios + '\'';
+        return  "Gênero=" + genero +
+                ", Título='" + titulo + '\'' +
+                ", Total de Temporadas=" + totalTemporadas +
+                ", Avaliação=" + avaliacao +
+                ", Atores='" + atores + '\'' +
+                ", Pôster='" + poster + '\'' +
+                ", Sinopse='" + sinopse + '\'';
     }
 }
