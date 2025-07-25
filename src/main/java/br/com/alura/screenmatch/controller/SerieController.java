@@ -29,4 +29,9 @@ public class SerieController {
                 // 4. Coleta os objetos SerieDTO resultantes em uma nova lista.
                 .collect(Collectors.toList());
     }
+
+    @GetMapping("/inicio")
+    public String retornarInicio(){
+        return "Bem-vindo ao screenmatch!";
+    }
 }
