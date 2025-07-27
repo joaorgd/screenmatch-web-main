@@ -1,37 +1,35 @@
 package br.com.alura.screenmatch.controller;
 
 import br.com.alura.screenmatch.dto.SerieDTO;
-import br.com.alura.screenmatch.repository.SerieRepository;
+import br.com.alura.screenmatch.service.SerieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+// Define a classe como um Controller de API REST, onde cada método retorna um objeto diretamente no corpo da resposta.
 @RestController
+// Mapeia todas as requisições que começam com "/series" para este controller.
+@RequestMapping("/series")
 public class SerieController {
 
+    // Injeta a dependência da camada de serviço, que contém as regras de negócio.
     @Autowired
-    private SerieRepository repositorio;
+    private SerieService servico;
 
-    @GetMapping("/series")
-    // O método agora retorna uma lista de SerieDTO, e não mais a entidade Serie.
-    // Isso garante que a API exponha apenas os dados definidos no DTO.
+    // Mapeia o endpoint principal (ex: GET /series) para este método.
+    @GetMapping
     public List<SerieDTO> obterSeries(){
-        // O PONTO-CHAVE: Conversão de Entidade para DTO.
-        // 1. Busca a lista de entidades 'Serie' do banco de dados.
-        return repositorio.findAll()
-                // 2. Transforma o Stream de 'Serie' em um Stream de 'SerieDTO'.
-                .stream()
-                // 3. Para cada série 's' da lista, cria um novo SerieDTO mapeando os campos.
-                .map(s -> new SerieDTO(s.getId(), s.getTitulo(), s.getTotalTemporadas(), s.getAvaliacao(), s.getGenero(), s.getAtores(),s.getPoster(), s.getSinopse()))
-                // 4. Coleta os objetos SerieDTO resultantes em uma nova lista.
-                .collect(Collectors.toList());
+        // Delega a responsabilidade de buscar e formatar os dados para a camada de serviço.
+        return servico.obterTodasAsSeries();
     }
 
-    @GetMapping("/inicio")
-    public String retornarInicio(){
-        return "Bem-vindo ao screenmatch!";
+    // Mapeia o endpoint (ex: GET /series/top5) para este método.
+    @GetMapping("/top5")
+    public List<SerieDTO> obterTop5(){
+        // Delega a busca das 5 melhores séries para a camada de serviço.
+        return servico.obterTop5Series();
     }
 }
