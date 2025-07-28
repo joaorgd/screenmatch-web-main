@@ -5,41 +5,53 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.OptionalDouble;
 
+// Marca esta classe como uma entidade que será mapeada para uma tabela no banco de dados.
 @Entity
+// Especifica o nome da tabela no banco de dados.
 @Table(name = "series")
 public class Serie {
+    // Define este campo como a chave primária da tabela.
     @Id
+    // Configura a geração automática do valor da chave primária pelo banco de dados.
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String titulo;
     private Integer totalTemporadas;
     private Double avaliacao;
+    // Salva o enum como texto (ex: "ACAO") no banco, em vez de um número (padrão).
     @Enumerated(EnumType.STRING)
     private Categoria genero;
     private String atores;
     private String poster;
     private String sinopse;
 
+    // Define um relacionamento "um-para-muitos" com a entidade Episodio.
+    // cascade = CascadeType.ALL propaga as operações (salvar, deletar) da Série para seus Episódios.
+    // fetch = FetchType.EAGER carrega os episódios junto com a série, o que é útil para evitar erros em certas operações.
     @OneToMany(mappedBy = "serie", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    // Gerencia a serialização JSON para evitar loops infinitos no relacionamento bidirecional.
     @JsonManagedReference
     private List<Episodio> episodios = new ArrayList<>();
 
+    // Construtor padrão exigido pelo JPA para criar instâncias da entidade.
     public Serie() {}
 
+    // Construtor para criar a entidade a partir dos dados brutos recebidos da API (DTO).
     public Serie(DadosSerie dadosSerie){
         this.titulo = dadosSerie.titulo();
         this.totalTemporadas = dadosSerie.totalTemporadas();
-        // CORREÇÃO 1: Usando try-catch para garantir que a conversão da avaliação não quebre com "N/A".
+        // Garante que a conversão da avaliação não quebre se o valor não for um número (ex: "N/A").
         try {
             this.avaliacao = Double.valueOf(dadosSerie.avaliacao());
         } catch (NumberFormatException e) {
             this.avaliacao = 0.0;
         }
+        // Converte a string de gênero da API para o tipo enum, pegando apenas a primeira categoria.
         this.genero = Categoria.fromString(dadosSerie.genero().split(",")[0].trim());
         this.atores = dadosSerie.atores();
         this.poster = dadosSerie.poster();
+        // Chama um serviço externo para traduzir a sinopse antes de salvá-la.
         this.sinopse = ConsultaMyMemory.obterTraducao(dadosSerie.sinopse()).trim();
     }
 
@@ -56,6 +68,7 @@ public class Serie {
         return episodios;
     }
 
+    // Garante que a referência bidirecional seja estabelecida ao associar episódios à série.
     public void setEpisodios(List<Episodio> episodios) {
         episodios.forEach(e -> e.setSerie(this));
         this.episodios = episodios;
@@ -117,7 +130,8 @@ public class Serie {
         this.sinopse = sinopse;
     }
 
-    // CORREÇÃO 2: O método toString() foi ajustado para não imprimir a lista de episódios diretamente.
+    // O método toString() foi ajustado para não imprimir a lista de episódios,
+    // o que evita loops infinitos e problemas de performance.
     @Override
     public String toString() {
         return  "Gênero=" + genero +

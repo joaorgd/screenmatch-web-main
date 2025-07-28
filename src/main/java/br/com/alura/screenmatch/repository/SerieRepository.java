@@ -11,8 +11,7 @@ import java.util.Optional;
 
 public interface SerieRepository extends JpaRepository<Serie, Long> {
 
-    // CORREÇÃO: Retorna List<Serie> para lidar com múltiplos resultados e evitar erros.
-    // Usado nas buscas por título e na busca de episódios.
+    // Busca séries que contenham o trecho de título informado, retornando uma lista.
     List<Serie> findByTituloContainingIgnoreCase(String nomeSerie);
 
     // Busca séries por ator e com avaliação maior ou igual à informada.
@@ -39,4 +38,9 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
     // Busca episódios de uma série a partir de um ano de lançamento.
     @Query("SELECT e FROM Serie s JOIN s.episodios e WHERE s = :serie AND YEAR(e.dataLancamento) >= :anoLancamento")
     List<Episodio> episodiosPorSerieEAno(Serie serie, int anoLancamento);
+
+    // Consulta customizada para encontrar os lançamentos mais recentes.
+    // Ordena as séries pela data de lançamento mais recente de seus episódios.
+    @Query("SELECT s FROM Serie s JOIN s.episodios e GROUP BY s.id ORDER BY MAX(e.dataLancamento) DESC LIMIT 5")
+    List<Serie> encontrarEpisodiosMaisRecentes();
 }
