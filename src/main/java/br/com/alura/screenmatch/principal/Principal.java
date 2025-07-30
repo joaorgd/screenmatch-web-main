@@ -17,12 +17,14 @@ public class Principal {
     private final String API_KEY = "&apikey=6585022c";
 
     private final SerieRepository repositorio;
-    private Optional<Serie> serieBusca;
+    private Optional<Serie> serieBusca; // Usado para buscas que dependem de uma única série selecionada previamente.
 
+    // Recebe o repositório via injeção de dependência, conectando a classe ao banco.
     public Principal(SerieRepository repositorio) {
         this.repositorio = repositorio;
     }
 
+    // Método principal que exibe o menu e gerencia o fluxo de interação com o usuário.
     public void exibeMenu() {
         var opcao = -1;
         while(opcao != 0) {
@@ -39,7 +41,8 @@ public class Principal {
                     9 - Buscar episódios por trecho
                     10 - Top 5 episódios por série
                     11 - Buscar episódios a partir de uma data
-                    0 - Sair
+                                    
+                    0 - Sair                                 
                     *************************************************
                     """;
 
@@ -91,6 +94,7 @@ public class Principal {
         }
     }
 
+    // Orquestra a busca de dados na API e a persistência no banco.
     private void buscarSerieWeb() {
         DadosSerie dados = getDadosSerie();
         Serie serie = new Serie(dados);
@@ -98,6 +102,7 @@ public class Principal {
         System.out.println("\nSérie '" + serie.getTitulo() + "' salva no banco de dados!");
     }
 
+    // Responsável por interagir com o usuário e obter os dados brutos da API.
     private DadosSerie getDadosSerie() {
         System.out.println("Digite o nome da série para busca");
         var nomeSerie = leitura.nextLine();
@@ -105,6 +110,7 @@ public class Principal {
         return conversor.obterDados(json, DadosSerie.class);
     }
 
+    // Busca episódios de uma série, associa-os à entidade e salva tudo no banco.
     private void buscarEpisodioPorSerie(){
         listarSeriesBuscadas();
         System.out.println("Digite um trecho do nome da série para buscar os episódios");
@@ -137,14 +143,15 @@ public class Principal {
         }
     }
 
+    // Lista todas as séries do banco, ordenadas por gênero.
     private void listarSeriesBuscadas(){
-        // A lista de séries agora é uma variável local, preenchida a cada chamada.
         List<Serie> series = repositorio.findAll();
         series.sort(Comparator.comparing(Serie::getGenero));
         System.out.println("\nSéries salvas no banco de dados (ordenadas por gênero):");
         series.forEach(System.out::println);
     }
 
+    // Busca e exibe séries por um trecho do título.
     private void buscarSeriePorTitulo() {
         System.out.println("Digite um trecho do nome da série que deseja buscar:");
         var nomeSerie = leitura.nextLine();
@@ -154,13 +161,14 @@ public class Principal {
         if (!seriesEncontradas.isEmpty()) {
             System.out.println("Séries encontradas:");
             seriesEncontradas.forEach(System.out::println);
-            this.serieBusca = Optional.of(seriesEncontradas.get(0)); // Guarda a primeira para outras buscas
+            this.serieBusca = Optional.of(seriesEncontradas.get(0));
         } else {
             System.out.println("Série não encontrada!");
             this.serieBusca = Optional.empty();
         }
     }
 
+    // Busca e exibe séries por ator e avaliação mínima.
     private void buscarSeriesPorAtor() {
         System.out.println("Qual o nome do ator para busca?");
         var nomeAtor = leitura.nextLine();
@@ -173,6 +181,7 @@ public class Principal {
                 System.out.println("  - " + s.getTitulo() + " (Avaliação: " + s.getAvaliacao() + ")"));
     }
 
+    // Busca e exibe as 5 séries com as melhores avaliações.
     private void buscarTop5Series() {
         List<Serie> serieTop = repositorio.findTop5ByOrderByAvaliacaoDesc();
         System.out.println("\n--- TOP 5 SÉRIES ---");
@@ -180,6 +189,7 @@ public class Principal {
                 System.out.println(s.getTitulo() + " (Avaliação: " + s.getAvaliacao() + ")"));
     }
 
+    // Busca e exibe séries de uma categoria específica.
     private void buscarSeriesPorCategoria() {
         System.out.println("Deseja buscar séries de que categoria/gênero? ");
         var nomeGenero = leitura.nextLine();
@@ -189,6 +199,7 @@ public class Principal {
         seriesPorCategoria.forEach(System.out::println);
     }
 
+    // Filtra séries por número máximo de temporadas e avaliação mínima.
     private void filtrarSeriesPorTemporadaEAvaliacao(){
         System.out.println("Filtrar séries até quantas temporadas? ");
         var totalTemporadas = leitura.nextInt();
@@ -202,6 +213,7 @@ public class Principal {
                 System.out.println(s.getTitulo() + "  - avaliação: " + s.getAvaliacao()));
     }
 
+    // Busca episódios por um trecho do título do episódio.
     private void buscarEpisodioPorTrecho(){
         System.out.println("Qual o nome do episódio para busca?");
         var trechoEpisodio = leitura.nextLine();
@@ -212,6 +224,7 @@ public class Principal {
                         e.getNumeroEpisodio(), e.getTitulo()));
     }
 
+    // Busca e exibe os 5 melhores episódios de uma série previamente selecionada.
     private void topEpisodiosPorSerie(){
         buscarSeriePorTitulo();
         if(serieBusca.isPresent()){
@@ -224,6 +237,7 @@ public class Principal {
         }
     }
 
+    // Busca episódios de uma série previamente selecionada, a partir de um ano de lançamento.
     private void buscarEpisodiosDepoisDeUmaData(){
         buscarSeriePorTitulo();
         if(serieBusca.isPresent()){
